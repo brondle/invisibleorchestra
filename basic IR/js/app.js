@@ -1,4 +1,4 @@
-let serial;
+let serial2;
 let oldNote = 0;
 let synth = new Tone.Synth().toMaster()
 
@@ -12,15 +12,15 @@ function setup() {
 }
 
 function serialEvent() {
-	
+
 	let rawData = trim(serial.readLine());
 	if (rawData.length > 0) {
 		if( rawData < 2500 ) {
 			console.log(rawData);
 			synth.triggerAttackRelease( rawData, '8n');
 		}
-		
-	}	
+
+	}
 }
 
 function draw() {

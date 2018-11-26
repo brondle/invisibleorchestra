@@ -24,7 +24,8 @@ const byte medianFilterWindowSize = 20;
 
 // Create an object instance of the SharpDistSensor class
 SharpDistSensor sensor(sensorPin, medianFilterWindowSize);
-
+const int threshold = 20;
+int oldValue = 0;
 
 void setup() {
    Serial.begin(9600);
@@ -45,10 +46,11 @@ void loop() {
     if (Serial.available()) {
           // Get distance from sensor
     unsigned int distance = sensor.getDist();
-
   // Print distance to Serial
-   if (distance < 2500) {
+  //compare to threshold to prevent too many values being written
+   if (distance < 2500 && (oldValue >= distance+threshold || oldValue <= distance-threshold)) {
     Serial.println(distance);
+    oldValue = distance;
    }
 
   // Wait some time
@@ -70,6 +72,7 @@ void loop() {
        Serial.flush();
        currentWandPos = mappedValue;
        strip.clear();
+         //TODO: add cooler effects/ideally have white light emanating from most recent recorded wand position
        colorWipe(round15(mappedValue)-10, round15(mappedValue), c_blue, BLINK_WAIT);
     }
     }

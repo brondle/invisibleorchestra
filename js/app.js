@@ -19,15 +19,17 @@ let octaves =[1, 2, 3, 4, 5, 6];
 
 //
 //NOTE/FIXME: pianoFiles only works if you set up a server with http-server in this folder due to tonejs automatically requesting samples with an xml request
-let pianoFiles = {};
-notes.forEach(function(a1){
-  octaves.forEach(function(a2){
-    pianoFiles[(a1 + a2)] = `http://127.0.0.1:8080/lib/samples/piano/${a1 + a2}.mp3`;
-  });
-});
-console.log(pianoFiles);
+// let pianoFiles = {};
+// notes.forEach(function(a1){
+//   octaves.forEach(function(a2){
+//     pianoFiles[(a1 + a2)] = `http://127.0.0.1:8080/lib/samples/piano/${a1 + a2}.mp3`;
+//   });
+// });
+// console.log(pianoFiles);
 
-let piano = new Tone.Sampler(pianoFiles, {onload: this.onInstrumentReady}).toMaster();
+// let piano = new Tone.Sampler(pianoFiles, {onload: this.onInstrumentReady}).toMaster();
+// FIXME: testing with synth because i was having issues getting files to load
+var piano = new Tone.Synth().toMaster()
 
 function setup() {
     serial = new p5.SerialPort(); // make a new instance of  serialport librar
@@ -39,7 +41,7 @@ function setup() {
   //SET UP IR RECEIVER ON SEPARATE ARDUINO
 }
 
-
+let oldRawData = 0;
 
 
 function serialEvent() {
@@ -47,7 +49,7 @@ function serialEvent() {
   	let rawData = trim(serial.readLine());
 	if (rawData.length > 0) {
     //TODO: set limiter so that note is only played if rawData is N different from previous value or N (500?) milliseconds have passed
-		if( rawData < 2500 ) {
+		if( rawData < 2500) {
       console.log('rawData: ', rawData);
       let note = convertNote(rawData, 1000, 2500, 1, 7);
       console.log("note: ", keyMap[note]);
@@ -83,8 +85,10 @@ function serialEvent() {
   //  }
 }
 
+let timer = 0;
 function draw() {
   // Draw the video
+  timer++;
 }
 
 function convertNote(num, in_min, in_max, out_min, out_max) {

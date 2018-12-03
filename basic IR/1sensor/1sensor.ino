@@ -15,7 +15,7 @@ constants or for how to use custom defined fit functions.
 const byte sensorPin = A0;
 
 // Window size of the median filter (odd number, 1 = no filtering)
-const byte medianFilterWindowSize = 20;
+const byte medianFilterWindowSize = 21;
 
 // Create an object instance of the SharpDistSensor class
 SharpDistSensor sensor(sensorPin, medianFilterWindowSize);

@@ -56,6 +56,7 @@ void setup() {
   c_blue    = strip.Color(0, 0, 255);
   c_lightblue = strip.Color(0, 0, 100);
   strip.setBrightness(BRIGHTNESS);
+  strip2.setBrightness(BRIGHTNESS);
   strip.begin();
   strip2.begin();
   strip2.show();
@@ -77,12 +78,9 @@ void loop() {
     Serial.print(",");
     Serial.println(distArray[3]); // Print A3 distance to Serial  
   
-    int a = 65; //map(distArray[1], 1100, 2500, 0, 100);
+    int a = map(distArray[1], 1100, 2500, 0, 100);
     constrain(a, 0, 100);
     colorWipe(round15(a)-10, round15(a), c_blue, BLINK_WAIT); 
-
-    // Wait some time
-    delay(50);
 }
 
 

@@ -6,7 +6,8 @@
 
 
 #define PIN 6
-#define NUM_LEDS 150
+#define PIN2 5
+#define NUM_LEDS 50
 #define BRIGHTNESS 50
 #define BLINK_WAIT 10
 int currentWandPos = 0;
@@ -14,6 +15,7 @@ int currentWandPos = 0;
 uint32_t c_yellow, c_red, c_blue, c_green, c_white, c_magenta, c_lightblue;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_LEDS, PIN2, NEO_GRB + NEO_KHZ800);
 
 
 // Analog pin to which the sensor is connected
@@ -38,6 +40,8 @@ void setup() {
   
   strip.setBrightness(BRIGHTNESS);
   strip.begin();
+  strip2.begin();
+  strip2.show();
   strip.show(); // Initialize all pixels to 'off'
   sensor.setModel(SharpDistSensor::GP2Y0A710K0F_5V_DS);
 
@@ -46,32 +50,36 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
           // Get distance from sensor
-    strip.setPixelColor(1, c_red); // Moderately bright green color.
+   // strip.setPixelColor(1, c_red); // Moderately bright green color.
 
     strip.show(); // 
   // Print distance to Serial
   //compare to threshold to prevent too many values being written
    unsigned int distance = sensor.getDist();
-   if (distance < 2500 && (oldValue >= distance+threshold || oldValue <= distance-threshold /*|| millis() - oldTime >= 750*/)) {
-    Serial.println(distance);
-    oldValue = distance;
-    oldTime = millis();
+   distance = 1000;
+//   if (distance < 2500 && (oldValue >= distance+threshold || oldValue <= distance-threshold /*|| millis() - oldTime >= 750*/)) {
+//    Serial.println(distance);
+//    oldValue = distance;
+//    oldTime = millis();
     int a = map(distance, 1100, 2500, 0, 100);
     constrain(a, 0, 50);
     // strip.clear();
     colorWipe(round15(a)-10, round15(a), c_blue, BLINK_WAIT); 
     // chase(c_red, a);
     delay(50);
-   }
+//   }
 }
 void colorWipe(uint32_t from, uint32_t to, uint32_t c, uint8_t wait) {
   for(uint16_t i=0;i<strip.numPixels(); i++) {
     strip.setPixelColor(i, c_lightblue); 
+    strip2.setPixelColor(i, c_lightblue);
   }
   for(uint16_t i=from; i<to; i++) {
     strip.setPixelColor(i, c);
     strip.show();
-//    delay(wait);
+    strip2.setPixelColor(i, c);
+    strip2.show();
+    delay(wait);
   }
 }
 

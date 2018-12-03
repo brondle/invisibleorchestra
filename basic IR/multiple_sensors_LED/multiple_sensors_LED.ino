@@ -7,14 +7,18 @@ Source: https://github.com/DrGFreeman/SharpDistSensor
 
 #include <SharpDistSensor.h>
 
+#include <Adafruit_NeoPixel.h>
+
 /* LED BEGIN */ 
-#define PIN 6
-#define NUM_LEDS 150
+#define PIN 3
+#define PIN_2 9
+#define NUM_LEDS 100
 #define BRIGHTNESS 50
 #define BLINK_WAIT 10
 
 uint32_t c_yellow, c_red, c_blue, c_green, c_white, c_magenta, c_lightblue;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_LEDS, PIN_2, NEO_GRB + NEO_KHZ800);
 
 /* LED END */ 
 
@@ -53,6 +57,8 @@ void setup() {
   c_lightblue = strip.Color(0, 0, 100);
   strip.setBrightness(BRIGHTNESS);
   strip.begin();
+  strip2.begin();
+  strip2.show();
   strip.show(); // Initialize all pixels to 'off'
   
 }
@@ -70,6 +76,10 @@ void loop() {
     Serial.print(distArray[2]); // Print A2 distance to Serial
     Serial.print(",");
     Serial.println(distArray[3]); // Print A3 distance to Serial  
+  
+    int a = 65; //map(distArray[1], 1100, 2500, 0, 100);
+    constrain(a, 0, 100);
+    colorWipe(round15(a)-10, round15(a), c_blue, BLINK_WAIT); 
 
     // Wait some time
     delay(50);
@@ -79,10 +89,14 @@ void loop() {
 void colorWipe(uint32_t from, uint32_t to, uint32_t c, uint8_t wait) {
   for(uint16_t i=0;i<strip.numPixels(); i++) {
     strip.setPixelColor(i, c_lightblue); 
+    strip2.setPixelColor(i, c_lightblue);
   }
   for(uint16_t i=from; i<to; i++) {
     strip.setPixelColor(i, c);
     strip.show();
+    strip2.setPixelColor(i, c);
+    strip2.show();
+    delay(50);
   }
 }
 

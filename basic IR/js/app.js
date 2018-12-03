@@ -1,7 +1,13 @@
-let serial2;
-let oldNote = 0;
+let serial;
 let synth = new Tone.Synth().toMaster();
+let synth2 = new Tone.Synth().toMaster();
 let fromSerial0 = 0, fromSerial1 = 0, fromSerial2 = 0, fromSerial3 = 0;
+let oldNote = 0;
+let oldNote2 = 0;
+let keyMap = {
+  1: "C", 2: "D", 3: "E", 4: "F", 5: "G", 6: "A", 7: "B"}
+let notes = ["A", "B", "C", "D", "E", "F", "G"];
+let octaves =[1, 2, 3, 4, 5, 6];
 
 function setup() {
 
@@ -15,40 +21,53 @@ function setup() {
 function serialEvent() {
 
 	let rawData = trim(serial.readLine());
-	
-	
-	
-	
+
+
+
+
 	if (rawData.length > 0) {
 		let distanceValues = split(rawData, ",");
-		
+    console.log('distance values: ', distanceValues);
+
 		fromSerial0 = Number(distanceValues[0]);
 		fromSerial1 = Number(distanceValues[1]);
 		fromSerial2 = Number(distanceValues[2]);
 		fromSerial3 = Number(distanceValues[3]);
 
-		
+  if (fromSerial0 < 2500) {
+  //			synth2.volume.value = map(fromSerial1, 1000, 1600, -30, 100);
+      synth2.volume.value = 20;
+
+  }
+
 		if( fromSerial1 < 2500 ) {
-			synth.volume.value = map(fromSerial1, 1000, 1600, -30, 100);
+      //			synth.volume.value = map(fromSerial1, 1000, 1600, -30, 100);
+      synth2.volume.value = 20;
 		}
 
 		if( fromSerial2 < 2500 ) {
-			synth.triggerAttackRelease( fromSerial2, '8n');
-		}		
+      let note = convertNote(fromSerial2, 1000, 2500, 1, 7);
+      if (oldNote != note) {
+        synth.triggerRelease();
+        oldNote = note;
+	synth.triggerAttack( keyMap[note] + "3", Tone.context.currentTime);
 
-		
-		/*
-		if( fromSerial1 < 2500 ) {
-			console.log(fromSerial1);
-			synth.triggerAttackRelease( fromSerial1, '8n');
-		}
+      }
+				}
+    serial.clear();
 
-		
+
+
 		if( fromSerial3 < 2500 ) {
-			console.log(fromSerial3);
-			synth.triggerAttackRelease( fromSerial3, '8n');
-		}		
-		*/
+      // synth2.volume.value = map (fromSerial0, 1000, 2500, 10, 50);
+      let note2 = convertNote(fromSerial3, 1000, 2500, 1, 7);
+    if (oldNote2 != note2) {
+      //      synth2.triggerRelease();
+      oldNote2 = note2;
+      //     synth2.triggerAttack( keyMap[note2] + "4", Tone.context.currentTime);
+    }
+    serial.clear();
+    }
 
 
 	}
@@ -58,4 +77,9 @@ function serialEvent() {
 function draw() {
 
 
+}
+function convertNote(num, in_min, in_max, out_min, out_max) {
+  let convertedNote = (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+  return Math.round(convertedNote);
+  // convert to note along full octave scale (C)  return Math.ceil(convertedNote/12) * 12;
 }

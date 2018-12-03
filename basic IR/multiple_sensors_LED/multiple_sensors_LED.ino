@@ -40,6 +40,9 @@ SharpDistSensor sensorArray[] = {
 
 // Define an array of integers that will store the measured distances
 uint16_t distArray[nbSensors];
+uint16_t oldArray[nbSensors];
+int checker = 0;
+int timer = 0;
 
 /* IR Sensor END */
 
@@ -56,7 +59,6 @@ void setup() {
   c_blue    = strip.Color(0, 0, 255);
   c_lightblue = strip.Color(0, 0, 100);
   strip.setBrightness(BRIGHTNESS);
-  strip2.setBrightness(BRIGHTNESS);
   strip.begin();
   strip2.begin();
   strip2.show();
@@ -68,7 +70,13 @@ void loop() {
     // Read distance for each sensor in array into an array of distances
     for (byte i = 0; i < nbSensors; i++) {
       distArray[i] = sensorArray[i].getDist();
+      if (distArray[i] != oldArray[i]) {
+        oldArray[i] = distArray[i];
+        checker++;
+      }
     }
+
+    if (checker >= 2) {
      
     Serial.print(distArray[0]); // Print A0 distance to Serial
     Serial.print(",");
@@ -78,11 +86,20 @@ void loop() {
     Serial.print(",");
     Serial.println(distArray[3]); // Print A3 distance to Serial  
   
-    int a = map(distArray[1], 1000, 1600, 0, 100);
-    
+    int a = 65; //map(distArray[1], 1100, 2500, 0, 100);
     constrain(a, 0, 100);
-    colorWipe(round15(a)-10, round15(a), c_red, BLINK_WAIT); 
-    /*Serial.println(a);*/
+    colorWipe(round15(a)-10, round15(a), c_blue, BLINK_WAIT);
+    checker = 0;
+    }
+    //allow for same not to be played every half-second
+    if ((millis() - timer) > 500) {
+       for (byte i = 0; i < nbSensors; i++) {
+          oldArray[i] = 0;
+      }
+      timer+=500;
+    }
+    // Wait some time
+    delay(50);
 }
 
 
@@ -96,7 +113,7 @@ void colorWipe(uint32_t from, uint32_t to, uint32_t c, uint8_t wait) {
     strip.show();
     strip2.setPixelColor(i, c);
     strip2.show();
-   // delay(5);
+    //delay(50);
   }
 }
 

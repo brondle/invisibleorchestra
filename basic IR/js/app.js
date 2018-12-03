@@ -22,7 +22,7 @@ function serialEvent() {
 	if (rawData.length > 0) {
 		let distanceValues = split(rawData, ",");
 		
-		fromSerial0 = Number(distanceValues[0]);             // get the first item in the array and turn into integer
+		fromSerial0 = Number(distanceValues[0]);
 		fromSerial1 = Number(distanceValues[1]);
 		fromSerial2 = Number(distanceValues[2]);
 		fromSerial3 = Number(distanceValues[3]);
@@ -33,7 +33,6 @@ function serialEvent() {
 		}
 
 		if( fromSerial2 < 2500 ) {
-			console.log(fromSerial2);
 			synth.triggerAttackRelease( fromSerial2, '8n');
 		}		
 

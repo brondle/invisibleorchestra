@@ -78,9 +78,11 @@ void loop() {
     Serial.print(",");
     Serial.println(distArray[3]); // Print A3 distance to Serial  
   
-    int a = map(distArray[1], 1100, 2500, 0, 100);
+    int a = map(distArray[1], 1000, 1600, 0, 100);
+    
     constrain(a, 0, 100);
-    colorWipe(round15(a)-10, round15(a), c_blue, BLINK_WAIT); 
+    colorWipe(round15(a)-10, round15(a), c_red, BLINK_WAIT); 
+    /*Serial.println(a);*/
 }
 
 
@@ -94,7 +96,7 @@ void colorWipe(uint32_t from, uint32_t to, uint32_t c, uint8_t wait) {
     strip.show();
     strip2.setPixelColor(i, c);
     strip2.show();
-    delay(50);
+   // delay(5);
   }
 }
 

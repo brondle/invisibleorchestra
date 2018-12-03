@@ -16,6 +16,9 @@ function serialEvent() {
 
 	let rawData = trim(serial.readLine());
 	
+	
+	
+	
 	if (rawData.length > 0) {
 		let distanceValues = split(rawData, ",");
 		
@@ -25,33 +28,35 @@ function serialEvent() {
 		fromSerial3 = Number(distanceValues[3]);
 
 		
-		if( fromSerial0 < 2500 ) {
-			console.log(fromSerial0);
-			synth.triggerAttackRelease( fromSerial0, '8n');
-		}
-		
 		if( fromSerial1 < 2500 ) {
-			console.log(fromSerial1);
-			synth.triggerAttackRelease( fromSerial1, '8n');
+			synth.volume.value = map(fromSerial1, 1000, 1600, -30, 100);
 		}
 
 		if( fromSerial2 < 2500 ) {
 			console.log(fromSerial2);
 			synth.triggerAttackRelease( fromSerial2, '8n');
 		}		
+
+		
+		/*
+		if( fromSerial1 < 2500 ) {
+			console.log(fromSerial1);
+			synth.triggerAttackRelease( fromSerial1, '8n');
+		}
+
 		
 		if( fromSerial3 < 2500 ) {
 			console.log(fromSerial3);
 			synth.triggerAttackRelease( fromSerial3, '8n');
 		}		
-		
+		*/
 
 
 	}
-	
-	
+
 }
 
 function draw() {
+
 
 }

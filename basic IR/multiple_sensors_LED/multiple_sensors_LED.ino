@@ -86,7 +86,7 @@ void loop() {
     Serial.print(",");
     Serial.println(distArray[3]); // Print A3 distance to Serial  
   
-    int a = map(distArray[2], 1100, 2500, 0, 108);
+    int a = map(distArray[2], 1500, 2100, 0, 108);
     constrain(a, 0, 108);
     int b = map(distArray[3], 1000, 1500, 0, 108);
     constrain(b, 0, 108);

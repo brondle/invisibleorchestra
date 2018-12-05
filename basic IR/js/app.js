@@ -35,7 +35,7 @@ function serialEvent() {
 		fromSerial3 = Number(distanceValues[3]);
 
   if (fromSerial0 < 2500) {
- 	  let vol1 = map(fromSerial0, 1000, 2500, -30, 20);
+ 	  let vol1 = map(fromSerial0, 1000, 1400, -30, 20);
     //      synth2.volume.value = 20;
     if (vol1 < 20) {
       synth.volume.value = vol1;
@@ -46,7 +46,7 @@ function serialEvent() {
   }
 
 		if( fromSerial1 < 2500 ) {
-      let vol2 = map(fromSerial1, 1000, 1500, -30, 20);
+      let vol2 = map(fromSerial1, 1000, 3000, -30, 20);
       if (vol2 < 20) {
         synth2.volume.value = vol2;
       } else {
@@ -57,7 +57,7 @@ function serialEvent() {
 		}
 
 		if( fromSerial2 < 2500 ) {
-      let note = convertNote(fromSerial2, 1500, 2600, 1, 7);
+      let note = convertNote(fromSerial2, 1500, 2200, 1, 7);
         if (oldNote != note) {
           synth.triggerRelease();
           oldNote = note;

@@ -12,7 +12,7 @@ Source: https://github.com/DrGFreeman/SharpDistSensor
 /* LED BEGIN */ 
 #define PIN 3
 #define PIN_2 9
-#define NUM_LEDS 100
+#define NUM_LEDS 108
 #define BRIGHTNESS 50
 #define BLINK_WAIT 10
 
@@ -70,13 +70,13 @@ void loop() {
     // Read distance for each sensor in array into an array of distances
     for (byte i = 0; i < nbSensors; i++) {
       distArray[i] = sensorArray[i].getDist();
-      if (distArray[i] != oldArray[i]) {
-        oldArray[i] = distArray[i];
-        checker++;
-      }
+//      if (distArray[i] != oldArray[i]) {
+//        oldArray[i] = distArray[i];
+//        checker++;
+//      }
     }
 
-    if (checker >= 2) {
+//    if (checker >= 2) {
      
     Serial.print(distArray[0]); // Print A0 distance to Serial
     Serial.print(",");
@@ -86,35 +86,42 @@ void loop() {
     Serial.print(",");
     Serial.println(distArray[3]); // Print A3 distance to Serial  
   
-    int a = 65; //map(distArray[1], 1100, 2500, 0, 100);
-    constrain(a, 0, 100);
-    colorWipe(round15(a)-10, round15(a), c_blue, BLINK_WAIT);
-    checker = 0;
-    }
+    int a = map(distArray[2], 1100, 2500, 0, 108);
+    constrain(a, 0, 108);
+    int b = map(distArray[3], 1000, 1500, 0, 108);
+    constrain(b, 0, 108);
+    colorWipe(round10(a)-10, round10(b)-10, round10(a), round10(b), c_blue, BLINK_WAIT);
+//    checker = 0;
+//    }
     //allow for same not to be played every half-second
-    if ((millis() - timer) > 500) {
-       for (byte i = 0; i < nbSensors; i++) {
-          oldArray[i] = 0;
-      }
-      timer+=500;
-    }
+//    if ((millis() - timer) > 500) {
+//       for (byte i = 0; i < nbSensors; i++) {
+//          oldArray[i] = 0;
+//      }
+//      timer+=500;
+//    }
     // Wait some time
     delay(50);
 }
 
 
-void colorWipe(uint32_t from, uint32_t to, uint32_t c, uint8_t wait) {
+void colorWipe(uint32_t from1, uint32_t from2, uint32_t to1, uint32_t to2, uint32_t c, uint8_t wait) {
   for(uint16_t i=0;i<strip.numPixels(); i++) {
     strip.setPixelColor(i, c_lightblue); 
     strip2.setPixelColor(i, c_lightblue);
   }
-  for(uint16_t i=from; i<to; i++) {
+  for(uint16_t i=from1; i<to1; i++) {
     strip.setPixelColor(i, c);
     strip.show();
-    strip2.setPixelColor(i, c);
-    strip2.show();
+
     //delay(50);
   }
+//    for(uint16_t i=from2; i<to2; i++) {
+//    strip2.setPixelColor(i, c);
+//    strip2.show();
+//
+//    //delay(50);
+//  }
 }
 
 int round15(int n) {

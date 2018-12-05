@@ -15,7 +15,7 @@ function setup() {
   // serial.on('list', printList); // callback function for serialport list event
   serial.on('data', serialEvent); // callback for new data coming in
   serial.list(); // list the serial ports
-  serial.open("COM3"); // open a port
+  serial.open(""); // open a port
 }
 
 function serialEvent() {
@@ -35,36 +35,47 @@ function serialEvent() {
 		fromSerial3 = Number(distanceValues[3]);
 
   if (fromSerial0 < 2500) {
-  //			synth2.volume.value = map(fromSerial1, 1000, 1600, -30, 100);
-      synth2.volume.value = 20;
+ 	  let vol1 = map(fromSerial0, 1000, 2500, -30, 20);
+    //      synth2.volume.value = 20;
+    if (vol1 < 20) {
+      synth.volume.value = vol1;
+    } else {
+      synth.volume.value = 20;
+    }
 
   }
 
 		if( fromSerial1 < 2500 ) {
-      //			synth.volume.value = map(fromSerial1, 1000, 1600, -30, 100);
-      synth2.volume.value = 20;
+      let vol2 = map(fromSerial1, 1000, 1500, -30, 20);
+      if (vol2 < 20) {
+        synth2.volume.value = vol2;
+      } else {
+        synth2.volume.value = 20;
+      }
+      console.log('volume: ', synth.volume.value);
+      //synth2.volume.value = 20;
 		}
 
 		if( fromSerial2 < 2500 ) {
-      let note = convertNote(fromSerial2, 1000, 2500, 1, 7);
-      if (oldNote != note) {
-        synth.triggerRelease();
-        oldNote = note;
-	synth.triggerAttack( keyMap[note] + "3", Tone.context.currentTime);
-
+      let note = convertNote(fromSerial2, 1500, 2600, 1, 7);
+        if (oldNote != note) {
+          synth.triggerRelease();
+          oldNote = note;
+          //check out latency hints/performance stuff
+          synth.triggerAttack( keyMap[note] + "3");
+        }
       }
-				}
     serial.clear();
 
 
 
 		if( fromSerial3 < 2500 ) {
       // synth2.volume.value = map (fromSerial0, 1000, 2500, 10, 50);
-      let note2 = convertNote(fromSerial3, 1000, 2500, 1, 7);
+      let note2 = convertNote(fromSerial3, 1000, 1500, 1, 7);
     if (oldNote2 != note2) {
-      //      synth2.triggerRelease();
+        synth2.triggerRelease();
       oldNote2 = note2;
-      //     synth2.triggerAttack( keyMap[note2] + "4", Tone.context.currentTime);
+      synth2.triggerAttack( keyMap[note2] + "4");
     }
     serial.clear();
     }

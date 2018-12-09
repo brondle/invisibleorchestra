@@ -58,7 +58,7 @@ void setup() {
   c_red     = strip.Color(255,0,0);
   c_blue    = strip.Color(0, 0, 255);
   c_lightblue = strip.Color(0, 0, 100);
-  strip.setBrightness(BRIGHTNESS);
+  strip.setBrightness(BRIGHTNESS);w
   strip.begin();
   strip2.begin();
   strip2.show();

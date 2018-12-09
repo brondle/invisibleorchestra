@@ -15,7 +15,7 @@ function setup() {
   // serial.on('list', printList); // callback function for serialport list event
   serial.on('data', serialEvent); // callback for new data coming in
   serial.list(); // list the serial ports
-  serial.open(""); // open a port
+  serial.open("COM3"); // open a port
 }
 
 function serialEvent() {
@@ -34,18 +34,18 @@ function serialEvent() {
 		fromSerial2 = Number(distanceValues[2]);
 		fromSerial3 = Number(distanceValues[3]);
 
-  if (fromSerial0 < 2500) {
- 	  let vol1 = map(fromSerial0, 1000, 1400, -30, 20);
-    //      synth2.volume.value = 20;
-    if (vol1 < 20) {
-      synth.volume.value = vol1;
-    } else {
-      synth.volume.value = 20;
-    }
+		  if (fromSerial0 < 2000) {
+			  let vol1 = map(fromSerial0, 1000, 1400, -30, 20);
+			//      synth2.volume.value = 20;
+			if (vol1 < 20) {
+			  synth.volume.value = vol1;
+			} else {
+			  synth.volume.value = 20;
+			}
 
-  }
+		  }
 
-		if( fromSerial1 < 2500 ) {
+		if( fromSerial1 < 2000 ) {
       let vol2 = map(fromSerial1, 1000, 3000, -30, 20);
       if (vol2 < 20) {
         synth2.volume.value = vol2;
@@ -56,7 +56,7 @@ function serialEvent() {
       //synth2.volume.value = 20;
 		}
 
-		if( fromSerial2 < 2500 ) {
+		if( fromSerial2 < 2000 ) {
       let note = convertNote(fromSerial2, 1500, 2200, 1, 7);
         if (oldNote != note) {
           synth.triggerRelease();
@@ -69,7 +69,7 @@ function serialEvent() {
 
 
 
-		if( fromSerial3 < 2500 ) {
+		if( fromSerial3 < 2000 ) {
       // synth2.volume.value = map (fromSerial0, 1000, 2500, 10, 50);
       let note2 = convertNote(fromSerial3, 1000, 1500, 1, 7);
     if (oldNote2 != note2) {

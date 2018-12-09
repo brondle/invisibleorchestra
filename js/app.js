@@ -37,7 +37,7 @@ function setup() {
   serial.on('data', serialEvent); // callback for new data coming in
 
   serial.list(); // list the serial ports
-  serial.open("/dev/cu.usbmodem1411"); // open a port
+  serial.open("COM3"); // open a port
   //SET UP IR RECEIVER ON SEPARATE ARDUINO
 }
 

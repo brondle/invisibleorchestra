@@ -7,8 +7,8 @@
 #define PIN_9 9
 #define PIN_11 11
 
-#define NUM_LEDS 108
-int a, b, c;
+#define NUM_LEDS 70 
+int a, b, c, d;
 
 // Pattern types supported:
 enum  pattern { NONE, BLINK, METEOR, RAINBOW_CYCLE, THEATER_CHASE, COLOR_WIPE, SCANNER, FADE };
@@ -295,9 +295,11 @@ class NeoPatterns : public Adafruit_NeoPixel
 void Ring1Complete();
 void Ring2Complete();
 void Ring3Complete();
+void Ring4Complete();
 NeoPatterns Ring1(NUM_LEDS, PIN_3, NEO_GRB + NEO_KHZ800, &Ring1Complete);
 NeoPatterns Ring2(NUM_LEDS, PIN_5, NEO_GRB + NEO_KHZ800, &Ring2Complete);
 NeoPatterns Ring3(NUM_LEDS, PIN_9, NEO_GRB + NEO_KHZ800, &Ring3Complete);
+NeoPatterns Ring4(NUM_LEDS, PIN_11, NEO_GRB + NEO_KHZ800, &Ring4Complete);
 
 
 
@@ -340,16 +342,16 @@ int timer = 0;
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(112500);
    // Set some parameters for each sensor in array
   for (byte i = 0; i < nbSensors; i++) {
     sensorArray[i].setModel(SharpDistSensor::GP2Y0A710K0F_5V_DS);  // Set sensor model
   }
  
-   pinMode(PIN_3, INPUT_PULLUP);
-   pinMode(PIN_5, INPUT_PULLUP);
-   pinMode(PIN_9, INPUT_PULLUP);
-   
+//   pinMode(PIN_3, INPUT_PULLUP);
+//   pinMode(PIN_5, INPUT_PULLUP);
+//   pinMode(PIN_9, INPUT_PULLUP);
+//   
    Ring1.begin();
    Ring1.clear();
    Ring1.show();
@@ -365,7 +367,13 @@ void setup()
    Ring3.clear();
    Ring3.show();
    Ring3.Blink();
-   
+
+   Ring4.begin();
+   Ring4.clear();
+   Ring4.show();
+   Ring4.Blink();
+
+
 }
 
 
@@ -376,19 +384,28 @@ void loop()
       distArray[i] = sensorArray[i].getDist();
   }
   
-  a = map(distArray[1], 1002, 2000, 0, 300);
-  b = map(distArray[2], 1002, 2000, 0, 300);
-  c = map(distArray[3], 1002, 2000, 0, 300);
+  a = map(distArray[0], 1002, 5000, 0, 300);
+  b = map(distArray[1], 1002, 5000, 0, 300);
+  c = map(distArray[2], 1002, 5000, 0, 300);
+  d = map(distArray[3], 1002, 5000, 0, 300);
     
   
   /*  
     Serial.println(distArray[0]);
     //a = constrain(a, 0, NUM_LEDS);
   */  
+//     Serial.print(distArray[0]); // Print A0 distance to Serial
+//    Serial.print(",");
+//    Serial.print(distArray[1]); // Print A1 distance to Serial
+//    Serial.print(",");
+// Serial.println(distArray[2]); // Print A2 distance to Serial
+//    Serial.print(",");
+//    Serial.println(distArray[3]); // Print A3 distance to Serial 
 
-   readIntensity(distArray[2], distArray[3]);
-   readNotes(distArray[0], distArray[1]);
+   readIntensity(distArray[0], distArray[3]);
+   readNotes(distArray[2], distArray[1]);
    playNotes();
+   delay(10);
 
 
 
@@ -396,6 +413,7 @@ void loop()
     Ring1.Update();
     Ring2.Update(); 
     Ring3.Update();
+    Ring4.Update();
 }
 
 void Ring1Complete()
@@ -427,6 +445,10 @@ void Ring3Complete()
   Ring3.Interval = c;
 }
 
+void Ring4Complete()
+{   
+  Ring4.Interval = d;
+}
 void readIntensity(int val, int val2)
 {
   intensity = (uint8_t) (map(val, 1000, 5000, 0x00, 0x90));
@@ -435,8 +457,8 @@ void readIntensity(int val, int val2)
 
 void readNotes(int val, int val2)
 {
-  note = (uint8_t) (map(val, 1000, 3000, 37, 59));
-  note2 = (uint8_t) (map(val2, 1000, 3000, 37, 59));
+  note = (uint8_t) (map(val, 1000, 4000, 48, 59));
+  note2 = (uint8_t) (map(val2, 1000, 4000, 48, 59));
 }
 
 void playNotes() {
@@ -462,13 +484,9 @@ void noteOn(byte channel, byte pitch, byte velocity) {
 //  Serial.println(velocity);
 
 
-
-
-/*
   Serial.write(channel);
   Serial.write(pitch);
   Serial.write(velocity);
-*/
 }
 
 void noteOff(byte channel, byte pitch, byte velocity) {

@@ -5,24 +5,187 @@ Source: https://github.com/DrGFreeman/SharpDistSensor
 
 */
 
-//#include "MIDIUSB.h"
-//#include "PitchToNote.h"
-// #include <MIDI.h>
 
 #include <SharpDistSensor.h>
 
 #include <Adafruit_NeoPixel.h>
+//NEOPIXEL Multi-pattern stuff
+// Pattern types supported:
+
 
 /* LED BEGIN */ 
 #define PIN 3
-#define PIN_2 9
+#define PIN_2 5
+#define PIN_3 9
+#define PIN_4 11
 #define NUM_LEDS 108
 #define BRIGHTNESS 50
-#define BLINK_WAIT 10
+enum  pattern { NONE, RAINBOW_CYCLE, THEATER_CHASE, COLOR_WIPE, SCANNER, FADE };
+// Patern directions supported:
+enum  direction { FORWARD, REVERSE };
+
+// NeoPattern Class - derived from the Adafruit_NeoPixel class
+class NeoPatterns : public Adafruit_NeoPixel
+{
+    public:
+
+    // Member Variables:  
+    pattern  ActivePattern;  // which pattern is running
+    direction Direction;     // direction to run the pattern
+    
+    unsigned long Interval;   // milliseconds between updates
+    unsigned long lastUpdate; // last update of position
+    
+    uint32_t Color1, Color2;  // What colors are in use
+    uint16_t TotalSteps;  // total number of steps in the pattern
+    uint16_t Index;  // current step within the pattern
+    
+    void (*OnComplete)();  // Callback on completion of pattern
+    
+    // Constructor - calls base-class constructor to initialize strip
+    NeoPatterns(uint16_t pixels, uint8_t pin, uint8_t type, void (*callback)())
+    :Adafruit_NeoPixel(pixels, PIN_2, type)
+    {
+        OnComplete = callback;
+    }
+    
+    // Update the pattern
+    void Update()
+    {
+        if((millis() - lastUpdate) > Interval) // time to update
+        {
+            lastUpdate = millis();
+            switch(ActivePattern)
+            {
+
+                case THEATER_CHASE:
+                    TheaterChaseUpdate();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+  
+    // Increment the Index and reset at the end
+    void Increment()
+    {
+        if (Direction == FORWARD)
+        {
+           Index++;
+           if (Index >= TotalSteps)
+            {
+                Index = 0;
+                if (OnComplete != NULL)
+                {
+                    OnComplete(); // call the comlpetion callback
+                }
+            }
+        }
+        else // Direction == REVERSE
+        {
+            --Index;
+            if (Index <= 0)
+            {
+                Index = TotalSteps-1;
+                if (OnComplete != NULL)
+                {
+                    OnComplete(); // call the comlpetion callback
+                }
+            }
+        }
+    }
+    
+    // Reverse pattern direction
+    void Reverse()
+    {
+        if (Direction == FORWARD)
+        {
+            Direction = REVERSE;
+            Index = TotalSteps-1;
+        }
+        else
+        {
+            Direction = FORWARD;
+            Index = 0;
+        }
+    }
+
+    // Initialize for a Theater Chase
+    void TheaterChase(uint32_t color1, uint32_t color2, uint8_t interval, direction dir = FORWARD)
+    {
+        ActivePattern = THEATER_CHASE;
+        Interval = interval;
+        TotalSteps = numPixels();
+        Color1 = color1;
+        Color2 = color2;
+        Index = 0;
+        Direction = dir;
+   }
+    
+    // Update the Theater Chase Pattern
+    void TheaterChaseUpdate()
+    {
+        for(int i=0; i< numPixels(); i++)
+        {
+            if ((i + Index) % 3 == 0)
+            {
+                setPixelColor(i, Color1);
+            }
+            else
+            {
+                setPixelColor(i, Color2);
+            }
+        }
+        show();
+        Increment();
+    }
+
+  
+   
+    // Calculate 50% dimmed version of a color (used by ScannerUpdate)
+    uint32_t DimColor(uint32_t color)
+    {
+        // Shift R, G and B components one bit to the right
+        uint32_t dimColor = Color(Red(color) >> 1, Green(color) >> 1, Blue(color) >> 1);
+        return dimColor;
+    }
+
+    // Set all pixels to a color (synchronously)
+    void ColorSet(uint32_t color)
+    {
+        for (int i = 0; i < numPixels(); i++)
+        {
+            setPixelColor(i, color);
+        }
+        show();
+    }
+
+    // Returns the Red component of a 32-bit color
+    uint8_t Red(uint32_t color)
+    {
+        return (color >> 16) & 0xFF;
+    }
+
+    // Returns the Green component of a 32-bit color
+    uint8_t Green(uint32_t color)
+    {
+        return (color >> 8) & 0xFF;
+    }
+
+    // Returns the Blue component of a 32-bit color
+    uint8_t Blue(uint32_t color)
+    {
+        return color & 0xFF;
+    }
+    
+};
+
+void Strip2Complete();
 
 uint32_t c_yellow, c_red, c_blue, c_green, c_white, c_magenta, c_lightblue;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_LEDS, PIN_2, NEO_GRB + NEO_KHZ800);
+NeoPatterns strip2(NUM_LEDS, PIN_2, NEO_GRB + NEO_KHZ800, &Strip2Complete);
 
 /* LED END */ 
 
@@ -46,9 +209,6 @@ SharpDistSensor sensorArray[] = {
 
 // Define an array of integers that will store the measured distances
 uint16_t distArray[nbSensors];
-uint16_t oldArray[nbSensors];
-int checker = 0;
-int timer = 0;
 uint16_t oldNote1[3];
 uint16_t oldNote2[3];
 char hexval[5];
@@ -57,8 +217,12 @@ char hexval[5];
 //const byte notePitches[] = {C3, D3, E3, F3, G3, A3, B3};
 uint8_t intensity;
 uint8_t intensity2;
+uint8_t oldIntensity1;
+uint8_t oldIntensity2;
 uint8_t note;
 uint8_t note2;
+
+uint16_t timer = 0;
 
 /* IR Sensor END */
 
@@ -70,14 +234,13 @@ void setup() {
 //   MIDI.begin(MIDI_CHANNEL_OMNI);  // Listen to all incoming messages
    Serial.begin(115200);
    delay(1000);
-//  c_red     = strip.Color(255,0,0);
-//  c_blue    = strip.Color(0, 0, 255);
-//  c_lightblue = strip.Color(0, 0, 100);
-//  strip.setBrightness(BRIGHTNESS);
-//  strip.begin();
-//  strip2.begin();
-//  strip2.show();
-//  strip.show(); // Initialize all pixels to 'off'
+  c_red     = strip.Color(255,0,0);
+  c_blue    = strip.Color(0, 0, 255);
+  c_lightblue = strip.Color(0, 0, 100);
+  strip.setBrightness(BRIGHTNESS);
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
+  strip2.TheaterChase(strip2.Color(0, 0, 100), strip2.Color(200, 0, 0), 0);
   
 }
 
@@ -85,73 +248,56 @@ void loop() {
     // Read distance for each sensor in array into an array of distances
     for (byte i = 0; i < nbSensors; i++) {
       distArray[i] = sensorArray[i].getDist();
-//      if (distArray[i] != oldArray[i]) {
-//        oldArray[i] = distArray[i];/
-//        checker++;
-//      }
     }
       readIntensity(distArray[2], distArray[3]);
       readNotes(distArray[0], distArray[1]);
       playNotes();
 
-//    if (checker >= 2) {
 //     
 //     Serial.print(distArray[0]); // Print A0 distance to Serial
 //    Serial.print(",");
 //    Serial.print(distArray[1]); // Print A1 distance to Serial
 //    Serial.print(",");
-//    Serial.print(distArray[2]); // Print A2 distance to Serial
+ //Serial.println(distArray[2]); // Print A2 distance to Serial
 //    Serial.print(",");
 //    Serial.println(distArray[3]); // Print A3 distance to Serial  
 //  
-//    int a = map(distArray[2], 1500, 2100, 0, 108);
-//    constrain(a, 0, 108);
-//    int b = map(distArray[3], 1000, 1500, 0, 108);
+    int a = map(distArray[0], 1000, 3000, 0, 108);
+    constrain(a, 0, 108);
+//    int b = map(distArray[2], 1000, 3000, 0, 108);
 //    constrain(b, 0, 108);
-//    colorWipe(round10(a)-10, round10(b)-10, round10(a), round10(b), c_blue, BLINK_WAIT);
-//    checker = 0;
-//    }
-    //allow for same not to be played every half-second
-//    if ((millis() - timer) > 500) {
-//       for (byte i = 0; i < nbSensors; i++) {
-//          oldArray[i] = 0;
-//      }
-//      timer+=500;
-//    }
-    // Wait some time
-    delay(50);
+    colorWipe(round10(a)-10, round10(a),  c_blue);
+    int wait = (1000 - map(distArray[2], 1000, 2000, 0, 1000));
+    if((millis() - timer) > wait) {
+        timer = millis();
+        strip2.TheaterChaseUpdate();
+    }
+
 }
 
 
-void colorWipe(uint32_t from1, uint32_t from2, uint32_t to1, uint32_t to2, uint32_t c, uint8_t wait) {
+void colorWipe(uint32_t from1, uint32_t to1, uint32_t c) {
   for(uint16_t i=0;i<strip.numPixels(); i++) {
     strip.setPixelColor(i, c_lightblue); 
-    strip2.setPixelColor(i, c_lightblue);
+//    strip2.setPixelColor(i, c_lightblue);
   }
   for(uint16_t i=from1; i<to1; i++) {
     strip.setPixelColor(i, c);
     strip.show();
-
-    //delay(50);
   }
-//    for(uint16_t i=from2; i<to2; i++) {
-//    strip2.setPixelColor(i, c);
-//    strip2.show();
-//
-//    //delay(50);
-//  }
+  
 }
 
 void readIntensity(int val, int val2)
 {
   intensity = (uint8_t) (map(val, 1000, 5000, 0x00, 0x90));
-  intensity2 = (uint8_t) (map(val, 1000, 5000, 0x00, 0x90));
+  intensity2 = (uint8_t) (map(val2, 1000, 5000, 0x00, 0x90));
 }
 
 void readNotes(int val, int val2)
 {
-  note = (uint8_t) (map(val, 1000, 4000, 48, 59));
-  note2 = (uint8_t) (map(val2, 1000, 4000, 48, 59));
+  note = (uint8_t) (map(val, 1000, 3000, 37, 59));
+  note2 = (uint8_t) (map(val2, 1000, 3000, 37, 59));
 }
 
 int round15(int n) {
@@ -160,33 +306,41 @@ int round15(int n) {
 int round10(int n) {
   return (n/10 + (n%10>2)) * 10;
 }
-//
-//void controlChange(byte channel, byte control, byte value) {
-//  midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
-//  MidiUSB.sendMIDI(event);
-//}
 
 void playNotes() {
+//     Serial.println(1);
      noteOn(0x90, note, intensity);
  //    noteOff(oldNote1[0], oldNote1[1], oldNote1[2]);
-     oldNote1[0] = 4;
-     oldNote1[1] = note;
-     oldNote1[2] = intensity;
-  //   delay(100);
-//     noteOn(2, note2, intensity2);
+//     oldNote1[0] = 4;
+//     oldNote1[1] = note;
+//     oldNote1[2] = intensity;
+ //   delay(50);
+//    Serial.println(2);
+     noteOn(0x91, note2, intensity2);
 //     oldNote2[0] = 2;
 //     oldNote1[1] = note2;
 //     oldNote1[2] = intensity2;
 }
 
 void noteOn(byte channel, byte pitch, byte velocity) {
+//  Serial.print(channel);
+//  Serial.print(",");
+//  Serial.print(pitch);
+//  Serial.print(",");
+//  Serial.println(velocity);
   Serial.write(channel);
   Serial.write(pitch);
   Serial.write(velocity);
-//   MIDI.read();
 }
 
 void noteOff(byte channel, byte pitch, byte velocity) {
-//  midiEventPacket_t noteOff = {0x08, 0x80 | channel, pitch, velocity};
-//  MidiUSB.sendMIDI(noteOff);
 }
+
+
+void Strip2Complete() {
+  
+}
+
+
+// Define some NeoPatterns for the two rings and the stick
+// Initialize everything and prepare to start

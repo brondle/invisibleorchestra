@@ -333,6 +333,8 @@ uint8_t oldIntensity1;
 uint8_t oldIntensity2;
 uint8_t note;
 uint8_t note2;
+uint8_t note3;
+uint8_t note4;
 
 int timer = 0;
 
@@ -393,22 +395,22 @@ void loop()
   /*  
     Serial.println(distArray[0]);
     //a = constrain(a, 0, NUM_LEDS);
-  */  
+////  */  
 //     Serial.print(distArray[0]); // Print A0 distance to Serial
 //    Serial.print(",");
 //    Serial.print(distArray[1]); // Print A1 distance to Serial
 //    Serial.print(",");
-// Serial.println(distArray[2]); // Print A2 distance to Serial
+//    Serial.print(distArray[2]); // Print A2 distance to Serial
 //    Serial.print(",");
 //    Serial.println(distArray[3]); // Print A3 distance to Serial 
 
-   readIntensity(distArray[0], distArray[3]);
-   readNotes(distArray[2], distArray[1]);
+  // readIntensity(distArray[0], distArray[1]);
+   readNotes(distArray[2], distArray[3], distArray[0], distArray[1]);
    playNotes();
-   delay(10);
+   delay(20);
 
-
-
+//
+////
   // Update the rings.
     Ring1.Update();
     Ring2.Update(); 
@@ -451,14 +453,45 @@ void Ring4Complete()
 }
 void readIntensity(int val, int val2)
 {
-  intensity = (uint8_t) (map(val, 1000, 5000, 0x00, 0x90));
-  intensity2 = (uint8_t) (map(val2, 1000, 5000, 0x00, 0x90));
+  if (val <= 3000) {
+  intensity = (uint8_t) (map(val, 1000, 3000, 0x75, 0x10));
+  } else {
+    intensity = 0x00;
+  }
+  constrain(intensity, 0x0, 0x80);
+  if (val2 <= 3000) {
+  intensity2 = (uint8_t) (map(val2, 1000, 3000, 0x70, 0x10));
+  } else {
+//    intensity2 = 0x00;
+    intensity2 = 0x45;
+  }
+  constrain(intensity2, 0x0, 0x90);
 }
 
-void readNotes(int val, int val2)
+void readNotes(int val, int val2, int val3,  int val4)
 {
-  note = (uint8_t) (map(val, 1000, 4000, 48, 59));
-  note2 = (uint8_t) (map(val2, 1000, 4000, 48, 59));
+  if (val <= 3000) {
+    note = (uint8_t) (map(val, 1002, 3000, 48, 59));
+    intensity = 0x20;
+  } else {
+   note = 20;
+    intensity = 0x01;
+  }
+  if (val2 <= 3500) {
+    note2 = (uint8_t) (map(val2, 1002, 3500, 72, 83));
+  } else {
+    note2 = 0;
+  }
+    if (val3 <= 3000) {
+    note3 = (uint8_t) (map(val3, 1002, 3000, 48, 59));
+  } else {
+    note3 = 70;
+  }
+  if (val4 <= 3500) {
+    note4 = (uint8_t) (map(val4, 1002, 3500, 48, 59));
+  } else {
+    note4 = 20;
+  }
 }
 
 void playNotes() {
@@ -470,7 +503,9 @@ void playNotes() {
 //     oldNote1[2] = intensity;
  //   delay(50);
 //    Serial.println(2);
-     noteOn(0x91, note2, intensity2);
+     noteOn(0x91, note2, 0x50);
+     noteOn(0x92, note3, 0x10);
+     noteOn(0x93, note4, 0x20);
 //     oldNote2[0] = 2;
 //     oldNote1[1] = note2;
 //     oldNote1[2] = intensity2;
